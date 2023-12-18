@@ -1,9 +1,10 @@
 const messagesContainer = document.querySelector('.messages-list')
-
 const prevPage = document.getElementById('prevPage')
 const nextPage = document.getElementById('nextPage')
 
+
 // Variáveis globais
+const pageNumbers = document.getElementById('pageNumbers')
 let currentPage = 1
 let totalPages = 1
 
@@ -21,13 +22,23 @@ async function fetchMessages(page) {
       page,
       perPage: 3
     }
-
     const response = await api.get(`/notes/${userId}`, { params })
     const messages = response.data.userMessages
 
     console.log(messages)
 
     totalPages = response.data.totalPages
+    const pageNumbers = document.getElementById('pageNumbers')
+
+    if(!pageNumbers.children.length){
+      for(let contador = 1; contador <= totalPages; contador++) {
+             pageNumbers.innerHTML += `<button onclick=fetchMessages(${contador}) >${contador}</button>` 
+     }
+ 
+    }
+    pageNumbers.innerText = `${currentPage} de ${totalPages}`
+
+   
 
     messagesContainer.innerHTML = ''
 
@@ -38,22 +49,21 @@ async function fetchMessages(page) {
       messageCard.innerHTML = `
         <h2 class="card-title">${message.title}</h2>
         <p class="card-description">${message.description}</p>
-        <div class="card-icons">
-          <i class="fas fa-solid fa-trash" data-id=${message.id}></i>
-          <i class="fas fa-regular fa-edit" data-id=${message.id}></i>
+        <div class= "card-icons"> 
+        <i class="fas fa-solid fa-trash" data-id=${message.id}></i>
+        <i class="fas fa-regular fa-edit" data-id=${message.id}></i>
         </div>
       `
 
       messagesContainer.appendChild(messageCard)
-
+      
       const deleteIcon = messageCard.querySelector('.fa-trash')
 
-      deleteIcon.addEventListener('click', () => {
+      deleteIcon.addEventListener('click', (e) =>{
         const messageId = deleteIcon.getAttribute('data-id')
 
         deleteMessage(messageId)
       })
-
       const editIcon = messageCard.querySelector('.fa-edit')
       editIcon.addEventListener('click', () => {
         const messageId = editIcon.getAttribute('data-id')
@@ -93,14 +103,4 @@ nextPage.addEventListener('click', () => {
 })
 
 
-async function fetchMessagesFirst(){
-  await fetchMessages(currentPage)
-
-  const pageNumbers = document.getElementById('pageNumbers')
-  for(let contador = 1; contador <= totalPages; contador++){
-
-     pageNumbers.innerHTML += `<button onclick=fetchMessages(${contador}) >${contador}</button>`
-  }
-}
-
-fetchMessagesFirst()
+fetchMessages()
